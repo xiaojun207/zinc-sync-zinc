@@ -51,11 +51,11 @@ func main() {
 					indexMap[name] = index
 					c++
 
-					hits2, err := secondaryZinc.SearchAll(index.Name, 0, 1)
-					if err != nil {
-						log.Println("secondaryZinc.SearchAll.err:", err)
-					}
-					log.Printf("index.sync.end: %s, \tfrom/total:%d/%d, \tsecondary.total:%d\n", index.Name, index.From, index.Stats.DocNum, *(hits2.Total.Value))
+					//hits2, err := secondaryZinc.SearchAll(index.Name, 0, 1)
+					//if err != nil {
+					//	log.Println("secondaryZinc.SearchAll.err:", err)
+					//}
+					//log.Printf("index.sync.end: %s, \tfrom/total:%d/%d, \tsecondary.total:%d\n", index.Name, index.From, index.Stats.DocNum, *(hits2.Total.Value))
 				}
 				pool.Submit(f)
 			}
