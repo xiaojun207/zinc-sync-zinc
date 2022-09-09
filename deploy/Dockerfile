@@ -17,8 +17,8 @@ WORKDIR /go/release
 
 ADD . .
 
-#RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags '-w -s' -o App App.go
-RUN go build -a -ldflags "-linkmode external -extldflags '-static' -s -w " -o App main.go
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags '-w -s' -o App main.go
+#RUN go build -a -ldflags "-linkmode external -extldflags '-static' -s -w " -o App main.go
 
 #运行镜像
 FROM alpine:latest AS production
