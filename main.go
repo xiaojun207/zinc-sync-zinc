@@ -50,12 +50,6 @@ func main() {
 					index.From = SyncDoc(primaryZinc, secondaryZinc, index.Name, index.Name, index.From, size)
 					indexMap[name] = index
 					c++
-
-					//hits2, err := secondaryZinc.SearchAll(index.Name, 0, 1)
-					//if err != nil {
-					//	log.Println("secondaryZinc.SearchAll.err:", err)
-					//}
-					//log.Printf("index.sync.end: %s, \tfrom/total:%d/%d, \tsecondary.total:%d\n", index.Name, index.From, index.Stats.DocNum, *(hits2.Total.Value))
 				}
 				pool.Submit(f)
 			}
@@ -101,11 +95,11 @@ func SyncDoc(primaryZinc, secondaryZinc *zinc.Zinc, primaryIndexName, secondaryI
 		count := len(hits.Hits)
 
 		if count > 0 {
-			log.Printf("SyncDoc, primary: %s, \tfrom/total: %d/%d, \tcount:%d \n", primaryIndexName, from, total, count)
+			log.Printf("SyncDoc, index: %s, \tfrom/total: %d/%d, \tcount:%d \n", primaryIndexName, from, total, count)
 			secondaryZinc.Write(secondaryIndexName, hits)
 			from = from + int32(count)
 		} else {
-			log.Printf("SyncDoc, primary: %s, from/total: %d/%d, count:%d \n", primaryIndexName, from, total, count)
+			log.Printf("SyncDoc, index: %s, from/total: %d/%d, count:%d \n", primaryIndexName, from, total, count)
 			// if no new data, sleep
 			return from
 		}

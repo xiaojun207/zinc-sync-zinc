@@ -69,6 +69,21 @@ func (z *Zinc) IndexDocument(index string, document map[string]interface{}) (str
 	return resp.GetId(), nil
 }
 
+func (z *Zinc) IndexDocuments(index string, docs []map[string]interface{}) (string, error) {
+	ctx := z.ctx()
+	s := ""
+	for _, doc := range docs {
+		d, _ := json.Marshal(doc)
+		s += string(d) + "\n"
+	}
+	resp, h, err := z.client.Document.Multi(ctx, index).Query(s).Execute()
+	if err != nil {
+		log.Println("IndexDocuments.http:", h)
+		return "", err
+	}
+	return resp.GetMessage(), nil
+}
+
 func (z *Zinc) CreateIndex(index string, mapping zinc.MetaMappings, setting zinc.MetaIndexSettings) (string, error) {
 	ctx := z.ctx()
 	mappingData := map[string]interface{}{}
@@ -105,13 +120,15 @@ func (z *Zinc) IndexSetting(index string, setting zinc.MetaIndexSettings) (strin
 }
 
 func (z *Zinc) Write(index string, hits *zinc.MetaHits) {
+	var docs []map[string]interface{}
 	for _, hit := range hits.Hits {
-		// write to Zinc
 		hit.Source["_id"] = *hit.Id
-		id, err := z.IndexDocument(index, hit.Source)
-		if err != nil {
-			log.Panicln("zinc write, id:", id, ", err:", err)
-		}
+		docs = append(docs, hit.Source)
+
+	}
+	msg, err := z.IndexDocuments(index, docs)
+	if err != nil {
+		log.Panicln("zinc write, msg:", msg, ", err:", err)
 	}
 }
 
