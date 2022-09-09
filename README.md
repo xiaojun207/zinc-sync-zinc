@@ -21,9 +21,10 @@ DEBUG=false
 
 # quick start
 ```shell
-docker run -e PRIMARY_ZINC_HOST="192.168.3.100:4080" \
- -e PRIMARY_ZINC_USER="admin"\
- -e PRIMARY_ZINC_PASSWORD="Complexpass#123"\
+docker run -d --name zinc-sync-zinc \
+ -e PRIMARY_ZINC_HOST="192.168.3.100:4080" \
+ -e PRIMARY_ZINC_USER="admin" \
+ -e PRIMARY_ZINC_PASSWORD="Complexpass#123" \
  -e SECONDARY_ZINC_HOST="192.168.3.102:4080" \
  -e SECONDARY_ZINC_USER="admin" \
  -e SECONDARY_ZINC_PASSWORD="Complexpass#123" \

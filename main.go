@@ -16,6 +16,7 @@ func main() {
 	log.Println("Config.SecondaryZincHost:", Config.SecondaryZincHost)
 	log.Println("Config.IgnoreIndexList:", Config.IgnoreIndexList)
 	log.Println("Config.GoroutineLimit:", Config.GoroutineLimit)
+	log.Println("Config.PageSize:", Config.PageSize)
 
 	// init primaryZinc
 	primaryZinc, err := zinc.NewZinc(Config.PrimaryZincHost, Config.PrimaryZincUser, Config.PrimaryZincPassword)
@@ -45,7 +46,7 @@ func main() {
 			index := idx
 			if !index.Synced() {
 				f := func() {
-					log.Println("index:", index.Name, ", From:", index.From, ",DocNum:", index.Stats.DocNum, ", DocTimeMax:", index.Stats.DocTimeMax)
+					log.Println("index.sync.start:", index.Name, ", \tFrom:", index.From, ", \tDocNum:", index.Stats.DocNum, ", \tDocTimeMax:", index.Stats.DocTimeMax)
 					index.From = SyncDoc(primaryZinc, secondaryZinc, index.Name, index.Name, index.From, size)
 					indexMap[name] = index
 					c++
@@ -54,7 +55,7 @@ func main() {
 					if err != nil {
 						log.Println("secondaryZinc.SearchAll.err:", err)
 					}
-					log.Printf("index:, primary: %s, from/total:%d/%d, secondary.total:%d\n", index.Name, index.From, index.Stats.DocNum, *(hits2.Total.Value))
+					log.Printf("index.sync.end: %s, \tfrom/total:%d/%d, \tsecondary.total:%d\n", index.Name, index.From, index.Stats.DocNum, *(hits2.Total.Value))
 				}
 				pool.Submit(f)
 			}
@@ -78,7 +79,7 @@ func SyncIndexMap(primaryZinc, secondaryZinc *zinc.Zinc, ignoreIndexList []strin
 		if secondaryIndex, ok := secondaryIndexMap[m.Name]; ok {
 			m.From = int32(secondaryIndex.Stats.DocNum)
 			if m.Stats.DocNum > secondaryIndex.Stats.DocNum {
-				log.Println("name:", m.Name, "m.DocNum > secondaryIndex.DocNum:", m.Stats.DocNum, secondaryIndex.Stats.DocNum)
+				//log.Printf("name: %s, m.DocNum: %d, secondaryIndex.DocNum: %d", m.Name, m.Stats.DocNum, secondaryIndex.Stats.DocNum)
 			}
 		} else {
 			m.From = 0
@@ -99,11 +100,12 @@ func SyncDoc(primaryZinc, secondaryZinc *zinc.Zinc, primaryIndexName, secondaryI
 		total := *hits.Total.Value
 		count := len(hits.Hits)
 
-		log.Printf("SyncDoc, primary: %s, from/total: %d/%d, count:%d \n", primaryIndexName, from, total, count)
 		if count > 0 {
+			log.Printf("SyncDoc, primary: %s, \tfrom/total: %d/%d, \tcount:%d \n", primaryIndexName, from, total, count)
 			secondaryZinc.Write(secondaryIndexName, hits)
 			from = from + int32(count)
 		} else {
+			log.Printf("SyncDoc, primary: %s, from/total: %d/%d, count:%d \n", primaryIndexName, from, total, count)
 			// if no new data, sleep
 			return from
 		}
