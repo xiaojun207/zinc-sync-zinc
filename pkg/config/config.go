@@ -31,15 +31,16 @@ type Config struct {
 	SecondaryZincHost     string   `env:"SECONDARY_ZINC_HOST,default=localhost:4080"`
 	SecondaryZincUser     string   `env:"SECONDARY_ZINC_USER,default=admin"`
 	SecondaryZincPassword string   `env:"SECONDARY_ZINC_PASSWORD,default=Complexpass#123"`
+	IndexMatch            string   `env:"INDEX_MATCH,default="`
 	IgnoreIndexList       []string `env:"IGNORE_INDEX_LIST,default="`
 	GoroutineLimit        int      `env:"GOROUTINE_LIMIT,default=1000"`
 	Debug                 bool     `env:"DEBUG,default=false"`
 	PageSize              int32    `env:"PAGE_SIZE,default=100"`
 }
 
-func InitConfig() *Config {
+func InitConfig(filenames ...string) *Config {
 	config := new(Config)
-	err := godotenv.Load()
+	err := godotenv.Load(filenames...)
 	if err != nil {
 		log.Print(err.Error())
 	}

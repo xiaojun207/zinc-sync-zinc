@@ -1,5 +1,5 @@
 # zinc-sync-zinc
-Zinc synchronization tool
+Zinc synchronization tool, sync zinc to zinc
 
 # env
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/xiaojun207/go-base-utils/array"
 	"github.com/xiaojun207/zinc-sync-zinc/pkg/config"
 	"github.com/xiaojun207/zinc-sync-zinc/pkg/pool"
 	"github.com/xiaojun207/zinc-sync-zinc/pkg/zinc"
@@ -14,6 +13,7 @@ func main() {
 	Config := config.InitConfig()
 	log.Println("Config.PrimaryZincHost:", Config.PrimaryZincHost)
 	log.Println("Config.SecondaryZincHost:", Config.SecondaryZincHost)
+	log.Println("Config.IndexMatch:", Config.IndexMatch)
 	log.Println("Config.IgnoreIndexList:", Config.IgnoreIndexList)
 	log.Println("Config.GoroutineLimit:", Config.GoroutineLimit)
 	log.Println("Config.PageSize:", Config.PageSize)
@@ -38,7 +38,7 @@ func main() {
 	for {
 		fmt.Println("--------------------------------------------------------------------------------------------------------------------------------------------")
 
-		indexMap := SyncIndexMap(primaryZinc, secondaryZinc, Config.IgnoreIndexList)
+		indexMap := SyncIndexMap(primaryZinc, secondaryZinc, Config.IndexMatch, Config.IgnoreIndexList)
 		log.Println("indexMap.len:", len(indexMap))
 		c := 0
 		t := time.Now()
@@ -62,14 +62,11 @@ func main() {
 	}
 }
 
-func SyncIndexMap(primaryZinc, secondaryZinc *zinc.Zinc, ignoreIndexList []string) map[string]zinc.Index {
-	primaryIndexMap := primaryZinc.IndexMap()
-	secondaryIndexMap := secondaryZinc.IndexMap()
+func SyncIndexMap(primaryZinc, secondaryZinc *zinc.Zinc, indexMatch string, ignoreIndexList []string) map[string]zinc.Index {
+	primaryIndexMap := primaryZinc.IndexMap(indexMatch, ignoreIndexList)
+	secondaryIndexMap := secondaryZinc.IndexMap(indexMatch, ignoreIndexList)
 	log.Println("primaryIndexMap:", len(primaryIndexMap), ", secondaryIndexMap:", len(secondaryIndexMap))
 	for _, m := range primaryIndexMap {
-		if array.Contains(ignoreIndexList, m.Name) {
-			continue
-		}
 		if secondaryIndex, ok := secondaryIndexMap[m.Name]; ok {
 			m.From = int32(secondaryIndex.Stats.DocNum)
 			if m.Stats.DocNum > secondaryIndex.Stats.DocNum {
@@ -98,10 +95,13 @@ func SyncDoc(primaryZinc, secondaryZinc *zinc.Zinc, primaryIndexName, secondaryI
 			log.Printf("SyncDoc, index: %s, \tfrom/total: %d/%d, \tcount:%d \n", primaryIndexName, from, total, count)
 			secondaryZinc.Write(secondaryIndexName, hits)
 			from = from + int32(count)
-		} else {
+
+		}
+
+		if count == 0 || from >= total {
 			log.Printf("SyncDoc, index: %s, from/total: %d/%d, count:%d \n", primaryIndexName, from, total, count)
-			// if no new data, sleep
 			return from
 		}
+		time.Sleep(time.Millisecond)
 	}
 }
